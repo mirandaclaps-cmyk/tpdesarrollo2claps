@@ -1,0 +1,13 @@
+document.addEventListener('DOMContentLoaded',()=>{
+ const format=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n);
+ let carrito=[];try{const stored=JSON.parse(localStorage.getItem('integra_carrito')||'[]');if(Array.isArray(stored))carrito=stored.filter(p=>productos.some(item=>item.id===p.id));}catch(e){carrito=[];}
+ const save=()=>localStorage.setItem('integra_carrito',JSON.stringify(carrito));
+ const catalog=document.getElementById('catalogo');
+ if(catalog)catalog.innerHTML=productos.map(p=>`<div class="col-6 col-md-4 col-xl-3"><article class="catalog-card"><img src="${p.imagen}" alt="Barrita ${p.nombre}" loading="lazy"><div class="catalog-card-body"><h3>${p.nombre}</h3><p>${p.descripcion}</p><div class="price mb-2">${format(p.precio)}</div><button type="button" class="btn btn-pink" data-add="${p.id}">Agregar <i class="bi bi-bag-plus"></i></button></div></article></div>`).join('');
+ function render(){const counter=document.getElementById('cart-count');if(counter)counter.textContent=carrito.length;const list=document.getElementById('cart-items');if(!list)return;
+ list.innerHTML=carrito.length?carrito.map((p,i)=>`<div class="cart-line"><span>${p.nombre}<br><strong>${format(p.precio)}</strong></span><button type="button" data-remove="${i}" aria-label="Eliminar ${p.nombre}"><i class="bi bi-x-circle"></i></button></div>`).join(''):'<p class="small">Todavía no agregaste productos.</p>';
+ document.getElementById('cart-total').textContent='Total: '+format(carrito.reduce((sum,p)=>sum+p.precio,0));}
+ document.addEventListener('click',e=>{const add=e.target.closest('[data-add]');const remove=e.target.closest('[data-remove]');if(add){const p=productos.find(p=>p.id===Number(add.dataset.add));if(p){carrito.push(p);save();render();add.innerHTML='¡Agregado! <i class="bi bi-check"></i>';setTimeout(()=>{add.innerHTML='Agregar <i class="bi bi-bag-plus"></i>';},900);}}if(remove){carrito.splice(Number(remove.dataset.remove),1);save();render();}});
+ document.getElementById('clear-cart')?.addEventListener('click',()=>{carrito=[];save();render();});render();
+ const form=document.getElementById('contact-form');form?.addEventListener('submit',e=>{e.preventDefault();e.stopPropagation();form.classList.add('was-validated');const status=document.getElementById('form-status');if(form.checkValidity()){status.textContent='Formulario validado correctamente. El mensaje no se envió: es una demostración.';form.reset();form.classList.remove('was-validated');}else{status.textContent='Revisá los campos marcados.';}});
+});
